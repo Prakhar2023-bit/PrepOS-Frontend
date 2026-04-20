@@ -6,6 +6,7 @@ import Link from 'next/link';
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
@@ -14,18 +15,21 @@ export default function Login() {
       const response = await fetch('http://localhost:8000/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }), // MVP: We are just using email for now
+        body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) throw new Error('User not found. Please register.');
+      if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Login failed');
+      }
       
       const user = await response.json();
       
-      // Store user identity in the browser
+      // Store user identity securely in the browser
       localStorage.setItem('prepos_user_id', user.id);
       localStorage.setItem('prepos_user_name', user.name);
       
-      // Redirect to the tools hub
+      // Redirect to the protected tools hub
       router.push('/dashboard');
     } catch (err) {
       setError(err.message);
@@ -33,21 +37,28 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 selection:bg-indigo-100 selection:text-indigo-900">
       <div className="bg-white max-w-md w-full rounded-2xl shadow-sm border border-slate-100 p-8">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 text-center">Welcome Back</h2>
         
-        {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">{error}</div>}
+        {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm font-medium rounded-lg border border-red-100">{error}</div>}
         
         <form onSubmit={handleLogin} className="space-y-4">
           <input 
             required 
             type="email" 
             placeholder="Enter your email" 
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none" 
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none" 
             onChange={(e) => setEmail(e.target.value)} 
           />
-          <button type="submit" className="w-full py-3.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors">
+          <input 
+            required 
+            type="password" 
+            placeholder="Enter your password" 
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none" 
+            onChange={(e) => setPassword(e.target.value)} 
+          />
+          <button type="submit" className="w-full py-3.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors shadow-sm hover:shadow-md">
             Log In
           </button>
         </form>

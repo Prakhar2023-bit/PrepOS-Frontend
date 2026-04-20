@@ -1,13 +1,26 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function TextAnalysis() {
+  const router = useRouter();
   const [jobDescription, setJobDescription] = useState('');
   const [currentSkills, setCurrentSkills] = useState('');
   const [roadmap, setRoadmap] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // The Route Guard
+  useEffect(() => {
+    const storedUserId = localStorage.getItem('prepos_user_id');
+    if (!storedUserId) {
+      router.push('/login');
+    } else {
+      setIsLoading(false);
+    }
+  }, [router]);
 
   const generateRoadmap = async () => {
     if (!jobDescription || !currentSkills) {
@@ -38,6 +51,8 @@ export default function TextAnalysis() {
       setIsGenerating(false);
     }
   };
+
+  if (isLoading) return null; // Prevent UI flash before redirect
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 py-12 px-4 sm:px-6 lg:px-8">
